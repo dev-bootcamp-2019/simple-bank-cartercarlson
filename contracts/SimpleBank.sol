@@ -60,8 +60,9 @@ contract SimpleBank {
 		public
 		returns (bool)
 	{
-		LogEnrolled(msg.sender);
-		return true;
+		emit LogEnrolled(msg.sender);
+        enrolled[msg.sender] = true;
+		return enrolled[msg.sender];
     }
 
     /// @notice Deposit ether into bank
@@ -71,12 +72,13 @@ contract SimpleBank {
     // Emit the appropriate event
     function deposit()
 		public
+        payable
 		returns (uint)
 	{
         /* Add the amount to the user's balance, call the event associated with a deposit,
           then return the balance of the user */
 		  balances[msg.sender] += msg.value;
-		  LogDepositMade(msg.sender, msg.value);
+		  emit LogDepositMade(msg.sender, msg.value);
 		  return balances[msg.sender];
     }
 
@@ -95,7 +97,8 @@ contract SimpleBank {
            return the user's balance.*/
 	   	if (balances[msg.sender] >= withdrawAmount) {
 			balances[msg.sender] -= withdrawAmount;
-			msg.sender.send(withdrawAmount);	
+			msg.sender.transfer(withdrawAmount);
+            emit LogWithdrawal(msg.sender, withdrawAmount, balances[msg.sender]);
 		}
 		return balances[msg.sender];
     }
@@ -105,7 +108,5 @@ contract SimpleBank {
     // Typically, called when invalid data is sent
     // Added so ether sent to this contract is reverted if the contract fails
     // otherwise, the sender's money is transferred to contract
-    function() {
-        revert();
-    }
+
 }
